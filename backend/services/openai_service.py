@@ -35,17 +35,26 @@ async def transcribe_video(video_bytes: bytes, filename: str = "video.mp4") -> s
     """
     from services.media_utils import extract_audio
     
-    audio_bytes = extract_audio(video_bytes)
-    if not audio_bytes:
-        print("Falling back to sending full video for transcription (extract_audio failed or ffmpeg missing)")
+    video_size_mb = len(video_bytes) / (1024 * 1024)
+    
+    # Use audio extraction ONLY for large videos (> 20MB) to stay safe & fast
+    if video_size_mb > 20.0:
+        print(f"Large video detected ({video_size_mb:.1f}MB). Extracting audio for Whisper efficiency.")
+        audio_bytes = extract_audio(video_bytes)
+        if audio_bytes:
+            audio_to_send = audio_bytes
+            ext = "mp3"
+        else:
+            print("Audio extraction failed, falling back to full video.")
+            audio_to_send = video_bytes
+            ext = "mp4"
+    else:
+        # Small video: send the whole thing as originally intended
         audio_to_send = video_bytes
         ext = "mp4"
-    else:
-        audio_to_send = audio_bytes
-        ext = "mp3"
 
     try:
-        file_tuple = (filename.replace(".mp4", f".{ext}"), io.BytesIO(audio_to_send), f"audio/{ext}")
+        file_tuple = (filename.replace(".mp4", f".{ext}"), io.BytesIO(audio_to_send), f"video/{ext}" if ext == "mp4" else "audio/mp3")
         response = await client.audio.transcriptions.create(
             model="whisper-1",
             file=file_tuple,
