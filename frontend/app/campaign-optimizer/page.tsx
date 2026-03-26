@@ -6,7 +6,7 @@ import {
   PenTool, MessageSquareText, Video
 } from "lucide-react";
 
-const API = "http://localhost:8000/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 interface ScoreWithReason {
   score: number;

@@ -7,7 +7,7 @@ import {
   TrendingUp, BarChart as BarChartIcon, BrainCircuit, Play, ArrowRight
 } from "lucide-react";
 
-const API = "http://localhost:8000/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 interface MetricsResult {
   metrics: {
