@@ -106,8 +106,14 @@ export default function CampaignOptimizer() {
     try {
       const res = await fetch(`${API}/campaign-optimizer`, { method: "POST", body });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Analysis failed");
+        let errorMsg = "Analysis failed";
+        try {
+          const err = await res.json();
+          errorMsg = err.detail || errorMsg;
+        } catch (e) {
+          errorMsg = `Server error (${res.status}): ${res.statusText}`;
+        }
+        throw new Error(errorMsg);
       }
       const data = await res.json();
       setResult(data);
