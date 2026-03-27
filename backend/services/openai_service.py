@@ -207,21 +207,21 @@ Return ONLY a valid JSON object with this EXACT structure:
   "overall_ad_readiness_reasoning": "<1-2 sentences on whether this creative is strong enough to spend budget on right now>",
 
   "generated_hooks": [
-    {
+    {{
       "hook_script": "<A detailed 3-second video hook script (Visuals + Dialogue)>",
       "psychological_angle": "<Why this specific angle will convert the target audience>"
-    },
-    {"hook_script": "...", "psychological_angle": "..."},
-    {"hook_script": "...", "psychological_angle": "..."}
+    }},
+    {{"hook_script": "...", "psychological_angle": "..."}},
+    {{"hook_script": "...", "psychological_angle": "..."}}
   ],
   
   "generated_ad_copy": [
-    {
+    {{
       "copy_text": "<Full 3-4 line Facebook/Instagram primary text. Use emojis appropriately.>",
       "copy_angle": "<e.g. 'Storytelling', 'Direct Offer', 'Pain-Agitate-Resolve'>"
-    },
-    {"copy_text": "...", "copy_angle": "..."},
-    {"copy_text": "...", "copy_angle": "..."}
+    }},
+    {{"copy_text": "...", "copy_angle": "..."}},
+    {{"copy_text": "...", "copy_angle": "..."}}
   ]
 }}
 
