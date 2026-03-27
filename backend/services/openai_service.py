@@ -69,10 +69,14 @@ async def transcribe_video(video_bytes: bytes, filename: str = "video.mp4") -> s
 
 
 
-def _build_vision_messages(frame_b64_list: list[str], prompt: str) -> list:
-    """Build multi-image message for GPT-4o storyboard analysis."""
-    content = []
+def _build_vision_messages(frame_b64_list: list[str], user_prompt: str, system_prompt: str = "") -> list:
+    """Build multi-image message for GPT-4o storyboard analysis with optional system persona."""
+    messages = []
+    
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
 
+    content = []
     if len(frame_b64_list) == 1:
         content.append({
             "type": "image_url",
@@ -89,8 +93,9 @@ def _build_vision_messages(frame_b64_list: list[str], prompt: str) -> list:
                 "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": "high"}
             })
 
-    content.append({"type": "text", "text": prompt})
-    return [{"role": "user", "content": content}]
+    content.append({"type": "text", "text": user_prompt})
+    messages.append({"role": "user", "content": content})
+    return messages
 
 
 async def analyze_creative_for_targeting(
@@ -106,8 +111,22 @@ async def analyze_creative_for_targeting(
     media_context = "video ad storyboard (4 frames shown)" if is_video and len(frame_b64_list) > 1 else "image ad creative"
     transcript_section = f"\nVIDEO TRANSCRIPT (from Whisper):\n\"{transcript}\"\n" if transcript else "\n(No audio transcript available — image upload or silent video)\n"
 
-    prompt = f"""You are a senior Meta Ads strategist and creative director with deep expertise in the Indian D2C market. You have direct access to the entire Meta Ads Marketing API database in your mind.
-You are analyzing a {media_context} for a brand running Facebook/Instagram ads in India.{transcript_section}
+    system_prompt = """You are a senior Meta Ads strategist and creative director with deep expertise in the Indian D2C market. You have direct access to the entire Meta Ads Marketing API database in your mind.
+You provide professional, brutally honest, and specific analysis. All output MUST be in valid JSON format."""
+
+    user_prompt = f"""You are analyzing a {media_context} for a brand running Facebook/Instagram ads in India. {transcript_section}
+    
+YOUR TASK:
+First, deeply understand WHAT is happening in this ad and WHO it is speaking to. Do not just look at surface-level objects. Analyze the story, the emotional hook, the implicit pain points being solved, and the cultural context. 
+
+Then, act as a dynamic Meta Ads interest search engine. Generate hyper-specific, highly relevant targeting parameters based directly on the ad content. DO NOT use generic buckets.
+- For Demographics: Define exact life stages, jobs, and roles (e.g., 'college goers', 'parents of toddlers', 'software engineers in IT hubs').
+- For Interests: List highly specific brands, competitors, and exact Meta interests (e.g., 'Fabindia', 'Myntra', 'Organic food', 'Puma').
+- For Locations: Identify specific Indian cities, districts, or regions where this exact product will "boom" (e.g., 'Koramangala in Bangalore', 'Tier-2 districts like Nashik or Surat for ethnic wear').
+
+Return ONLY a valid JSON object with this EXACT structure:
+... (JSON template below) ...
+""" # I'll actually include the full prompt as it was to keep it close.
 
 YOUR TASK:
 First, deeply understand WHAT is happening in this ad and WHO it is speaking to. Do not just look at surface-level objects. Analyze the story, the emotional hook, the implicit pain points being solved, and the cultural context. 
