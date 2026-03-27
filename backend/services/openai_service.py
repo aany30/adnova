@@ -125,18 +125,6 @@ Then, act as a dynamic Meta Ads interest search engine. Generate hyper-specific,
 - For Locations: Identify specific Indian cities, districts, or regions where this exact product will "boom" (e.g., 'Koramangala in Bangalore', 'Tier-2 districts like Nashik or Surat for ethnic wear').
 
 Return ONLY a valid JSON object with this EXACT structure:
-... (JSON template below) ...
-""" # I'll actually include the full prompt as it was to keep it close.
-
-YOUR TASK:
-First, deeply understand WHAT is happening in this ad and WHO it is speaking to. Do not just look at surface-level objects. Analyze the story, the emotional hook, the implicit pain points being solved, and the cultural context. 
-
-Then, act as a dynamic Meta Ads interest search engine. Generate hyper-specific, highly relevant targeting parameters based directly on the ad content. DO NOT use generic buckets.
-- For Demographics: Define exact life stages, jobs, and roles (e.g., 'college goers', 'parents of toddlers', 'software engineers in IT hubs').
-- For Interests: List highly specific brands, competitors, and exact Meta interests (e.g., 'Fabindia', 'Myntra', 'Organic food', 'Puma').
-- For Locations: Identify specific Indian cities, districts, or regions where this exact product will "boom" (e.g., 'Koramangala in Bangalore', 'Tier-2 districts like Nashik or Surat for ethnic wear').
-
-Return ONLY a valid JSON object with this EXACT structure:
 
 {{
   "detected_product": "<Be specific: e.g. 'Ayurvedic anti-hairfall oil for postpartum mothers' not 'hair oil'>",
@@ -247,7 +235,7 @@ Return ONLY a valid JSON object with this EXACT structure:
 Be brutally honest. Specific. Reference what you actually see/hear. Do not output anything outside the JSON boundaries. Return ONLY valid JSON."""
 
     try:
-        messages = _build_vision_messages(frame_b64_list, prompt)
+        messages = _build_vision_messages(frame_b64_list, user_prompt, system_prompt)
         response = await client.chat.completions.create(
             model="gpt-4o",
             messages=messages,
@@ -272,13 +260,16 @@ async def analyze_creative_performance(image_b64: str, metrics_context: dict) ->
     """
     metrics_str = json.dumps(metrics_context, indent=2)
 
-    prompt = f"""You are a senior Meta Ads strategist specializing in Indian D2C e-commerce.
-You are reviewing an ad creative alongside its REAL campaign performance data.
+    system_prompt = """You are a senior Meta Ads strategist specializing in Indian D2C e-commerce.
+You review real campaign performance data alongside ad creatives.
+Your analysis must be professional, data-driven, and returned ONLY as a valid JSON object."""
 
+    user_prompt = f"""Analyze WHY this creative drove the specific results shown below.
+    
 CAMPAIGN PERFORMANCE:
 {metrics_str}
 
-TASK: Analyze WHY this creative drove the specific results shown. Be specific about:
+TASK: Be specific about:
 - Which exact visual elements likely drove conversions (or hurt them)
 - How the ROAS of {metrics_context.get('roas', 'N/A')}x compares to what this creative deserves
 - What to test next based on what you actually see
@@ -310,13 +301,16 @@ Return ONLY valid JSON."""
     try:
         response = await client.chat.completions.create(
             model="gpt-4o",
-            messages=[{
-                "role": "user",
-                "content": [
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}", "detail": "high"}},
-                    {"type": "text", "text": prompt}
-                ]
-            }],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}", "detail": "high"}},
+                        {"type": "text", "text": user_prompt}
+                    ]
+                }
+            ],
             max_tokens=1400,
             temperature=0.3
         )
