@@ -6,7 +6,9 @@ import {
   PenTool, MessageSquareText, Video
 } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+let API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+if (API.endsWith('/')) API = API.slice(0, -1);
+if (!API.endsWith('/api')) API = `${API}/api`;
 
 interface ScoreWithReason {
   score: number;
@@ -101,7 +103,7 @@ export default function CampaignOptimizer() {
     setError(null);
 
     const body = new FormData();
-    body.append("file", creativeFile);
+    body.append("creative", creativeFile);
 
     try {
       const res = await fetch(`${API}/campaign-optimizer`, { method: "POST", body });
@@ -109,7 +111,7 @@ export default function CampaignOptimizer() {
         let errorMsg = "Analysis failed";
         try {
           const err = await res.json();
-          errorMsg = err.detail || errorMsg;
+          errorMsg = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail) || errorMsg;
         } catch (e) {
           errorMsg = `Server error (${res.status}): ${res.statusText}`;
         }
