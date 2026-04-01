@@ -1,12 +1,12 @@
 "use client";
 import { useState, useRef } from "react";
-import { 
-  Sparkles, Target, Film, Mic, CheckCircle, AlertTriangle, 
+import {
+  Sparkles, Target, Film, Mic, CheckCircle, AlertTriangle,
   BrainCircuit, Users, MapPin, Tv, Tag, Activity, Lightbulb, UserCheck, Languages,
   PenTool, MessageSquareText, Video
 } from "lucide-react";
 
-let API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+let API = process.env.NEXT_PUBLIC_API_URL || "https://adnova-production.up.railway.app/api";
 if (API.endsWith('/')) API = API.slice(0, -1);
 if (!API.endsWith('/api')) API = `${API}/api`;
 
@@ -26,6 +26,8 @@ interface GeneratedAdCopy {
 }
 
 interface CampaignResult {
+  api_error?: boolean;
+  parse_error?: boolean;
   detected_product: string;
   creative_type: string;
   detected_brand_stage: string;
@@ -82,9 +84,13 @@ export default function CampaignOptimizer() {
 
   const ai = result?.ai_analysis;
 
-  // True only when the backend returned the hardcoded fallback because OpenAI
-  // was unreachable — NOT when a real creative legitimately scores zero.
-  const isApiError = !!ai && ai.detected_product?.toLowerCase().startsWith("unable to detect");
+  // True only when the backend explicitly returned the fallback due to an OpenAI
+  // failure — NOT when a real creative legitimately scores zero or GPT itself
+  // says "Unable to detect" for non-ad images (portraits, pixel art, etc.).
+  const isApiError = !!ai && ai.api_error === true;
+  
+  // True when the AI responds successfully but determines the creative is not an ad
+  const isParseError = !!ai && ai.parse_error === true;
 
   const handleFileChange = (file: File) => {
     setCreativeFile(file);
@@ -184,7 +190,7 @@ export default function CampaignOptimizer() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: "32px", alignItems: "start" }}>
-        
+
         {/* Upload Column */}
         <div className="glass-card" style={{ padding: "32px", position: "sticky", top: "30px" }}>
           <form onSubmit={handleSubmit}>
@@ -226,7 +232,7 @@ export default function CampaignOptimizer() {
             <button type="submit" className="btn-primary" style={{ width: "100%", marginTop: "24px", padding: "16px", justifyContent: "center", fontSize: "15px" }} disabled={!creativeFile || loading}>
               {loading ? (
                 <>
-                  <svg className="animate-spin" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                  <svg className="animate-spin" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
                   Processing Structure…
                 </>
               ) : (
@@ -283,7 +289,21 @@ export default function CampaignOptimizer() {
             </div>
           )}
 
-          {result && ai && !isApiError && (
+          {result && ai && isParseError && (
+            <div className="glass-card animate-in" style={{ padding: "48px 40px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Film size={26} color="var(--gold)" />
+              </div>
+              <div>
+                <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--text-primary)", marginBottom: "10px" }}>Not an Ad Creative</div>
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: "400px", margin: "0 auto" }}>
+                  The AI couldn't detect any actionable advertising structure in this file. Please upload a clear Facebook/Instagram ad (static image or video) to receive deep targeting and creative scoring.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {result && ai && !isApiError && !isParseError && (
             <div className="animate-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
               {/* Header Banner - Streamlined */}
@@ -302,7 +322,7 @@ export default function CampaignOptimizer() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div style={{ padding: "24px 32px", background: "linear-gradient(to right, rgba(59,130,246,0.02), transparent)" }}>
                   <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>"{ai.creative_meaning_analysis}"</p>
                   <p style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.6, marginTop: "16px", borderTop: "1px dashed var(--border)", paddingTop: "16px" }}>
@@ -484,7 +504,7 @@ export default function CampaignOptimizer() {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="glass-card" style={{ padding: "32px", border: "1px solid rgba(244,63,94,0.2)", borderTop: "2px solid var(--red)", background: "linear-gradient(135deg, rgba(244,63,94,0.02), rgba(0,0,0,0))" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px" }}>
                     <AlertTriangle size={16} color="var(--red)" />
