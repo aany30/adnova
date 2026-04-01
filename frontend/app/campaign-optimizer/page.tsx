@@ -82,6 +82,10 @@ export default function CampaignOptimizer() {
 
   const ai = result?.ai_analysis;
 
+  // True only when the backend returned the hardcoded fallback because OpenAI
+  // was unreachable — NOT when a real creative legitimately scores zero.
+  const isApiError = !!ai && ai.detected_product?.toLowerCase().startsWith("unable to detect");
+
   const handleFileChange = (file: File) => {
     setCreativeFile(file);
     const url = URL.createObjectURL(file);
@@ -262,7 +266,24 @@ export default function CampaignOptimizer() {
             </div>
           )}
 
-          {result && ai && (
+          {result && ai && isApiError && (
+            <div className="glass-card animate-in" style={{ padding: "48px 40px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "rgba(244,63,94,0.1)", border: "1px solid rgba(244,63,94,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <AlertTriangle size={26} color="var(--red)" />
+              </div>
+              <div>
+                <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--text-primary)", marginBottom: "10px" }}>OpenAI API Not Configured</div>
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: "400px", margin: "0 auto" }}>
+                  The backend could not reach OpenAI. Add your key to <code style={{ background: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: "4px", fontSize: "13px" }}>backend/.env</code> and restart the server.
+                </p>
+                <div style={{ marginTop: "20px", padding: "12px 16px", background: "rgba(244,63,94,0.06)", border: "1px solid rgba(244,63,94,0.15)", borderRadius: "8px", fontFamily: "monospace", fontSize: "13px", color: "var(--text-secondary)", display: "inline-block" }}>
+                  OPENAI_API_KEY=sk-...
+                </div>
+              </div>
+            </div>
+          )}
+
+          {result && ai && !isApiError && (
             <div className="animate-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
               {/* Header Banner - Streamlined */}
