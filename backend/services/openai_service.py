@@ -246,7 +246,7 @@ Be brutally honest. Specific. Reference what you actually see/hear. Do not outpu
         result = _extract_json(raw)
         if not result:
             print(f"JSON parse failed. Raw output: {raw[:500]}")
-            result = _default_targeting_response()
+            result = _parse_error_response()
         return result
     except Exception as e:
         print(f"OpenAI creative targeting error: {e}")
@@ -354,8 +354,54 @@ Return ONLY valid JSON."""
         return _default_text_analysis()
 
 
+def _parse_error_response() -> dict:
+    """Returned when GPT-4o responded but did not produce parseable JSON.
+    Typically happens for non-ad images (portraits, memes, pixel art, etc.).
+    Does NOT mention API keys — the key is fine, the image just isn't an ad."""
+    return {
+        "parse_error": True,
+        "detected_product": "Not identifiable as an ad creative",
+        "creative_meaning_analysis": "This image does not appear to be an advertisement. Upload a real ad creative (image or video) to get targeting and scoring analysis.",
+        "detected_brand_stage": "—",
+        "creative_type": "—",
+        "hook_score": 0,
+        "hook_score_reasoning": "No ad hook detected — this does not appear to be an ad creative.",
+        "hook_timing": "—",
+        "hook_type": "—",
+        "strengths": [],
+        "weaknesses": ["Image is not an ad creative — analysis cannot be performed."],
+        "improvement_suggestions": ["Upload a Facebook/Instagram ad image or video to receive targeting and creative scoring."],
+        "creative_format_score": {
+            "visual_clarity": {"score": 0, "reasoning": "Not an ad creative"},
+            "brand_visibility": {"score": 0, "reasoning": "Not an ad creative"},
+            "emotion_factor": {"score": 0, "reasoning": "Not an ad creative"},
+            "india_relevance": {"score": 0, "reasoning": "Not an ad creative"}
+        },
+        "targeting": {
+            "recommended_age_range": "—",
+            "gender": "—",
+            "psychographic_profile": "Upload an ad creative to generate targeting recommendations.",
+            "top_interests": [],
+            "interest_reasoning": "—",
+            "behaviors": [],
+            "behavior_reasoning": "—",
+            "city_tiers": [],
+            "recommended_cities": [],
+            "city_reasoning": "—",
+            "excluded_audiences": [],
+            "language_recommendation": "—"
+        },
+        "placement_recommendation": "—",
+        "overall_ad_readiness": "Needs major rework",
+        "overall_ad_readiness_reasoning": "This does not appear to be an ad creative.",
+        "generated_hooks": [],
+        "generated_ad_copy": []
+    }
+
+
 def _default_targeting_response() -> dict:
     return {
+        "api_error": True,
         "detected_product": "Unable to detect — OpenAI key may not be set",
         "detected_brand_stage": "Early-stage D2C (no brand recognition)",
         "creative_type": "Video Ad",
