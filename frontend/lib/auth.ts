@@ -66,10 +66,10 @@ export async function fetchWithAuth(
 
 // ─── Auth API calls ────────────────────────────────────────────────────────────
 
-export async function apiSignup(name: string, email: string, password: string) {
+export async function apiSignup(email: string, password: string) {
   const res = await fetchWithAuth("/auth/signup", {
     method: "POST",
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify({ name: email.split("@")[0], email, password }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.detail ?? "Signup failed");
