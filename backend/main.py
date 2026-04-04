@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from routers import metrics, creative
+from routers import auth, activity
 import traceback
 
 app = FastAPI(
@@ -23,7 +24,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*", "https://adnova-bp4f.vercel.app", "https://adnova-bp4f-i9jd1ew6u-aany30s-projects.vercel.app"],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE", "HEAD"],
     allow_headers=["*"],
     expose_headers=["*"],
@@ -32,6 +33,8 @@ app.add_middleware(
 
 app.include_router(metrics.router)
 app.include_router(creative.router)
+app.include_router(auth.router)
+app.include_router(activity.router)
 
 
 @app.get("/")
@@ -47,3 +50,4 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+

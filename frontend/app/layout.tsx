@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import AuthLayout from "@/components/AuthLayout";
 
 export const metadata: Metadata = {
   title: "AdNova India — AI Ad Optimizer",
@@ -15,12 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div style={{ display: "flex", minHeight: "100vh" }}>
-          <Sidebar />
-          <main style={{ flex: 1, overflowY: "auto" }}>
-            {children}
-          </main>
-        </div>
+        <AuthLayout>{children}</AuthLayout>
       </body>
     </html>
   );

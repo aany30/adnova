@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getUser, logout } from "@/lib/auth";
 
 const navItems = [
   {
@@ -38,6 +39,12 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const user = getUser();
+
+  // User initials for avatar
+  const initials = user?.name
+    ? user.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
+    : "?";
 
   return (
     <aside style={{
@@ -68,9 +75,7 @@ export default function Sidebar() {
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
           </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: "17px", letterSpacing: "-0.03em", color: "var(--text-primary)" }}>AdNova</div>
-          </div>
+          <div style={{ fontWeight: 800, fontSize: "17px", letterSpacing: "-0.03em", color: "var(--text-primary)" }}>AdNova</div>
         </div>
       </div>
 
@@ -82,11 +87,7 @@ export default function Sidebar() {
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-link ${isActive ? "active" : ""}`}
-            >
+            <Link key={item.href} href={item.href} className={`nav-link ${isActive ? "active" : ""}`}>
               {item.icon}
               <span>{item.label}</span>
             </Link>
@@ -94,14 +95,77 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div style={{ marginTop: "auto", padding: "12px 14px" }}>
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.5 }}>
-          Powered by{" "}
-          <span style={{ color: "var(--gold)" }}>AdNova Intelligence</span>
-          <br />
-          Built for Indian D2C brands
-        </div>
+      {/* Footer — user + logout */}
+      <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "8px" }}>
+
+        {/* User info */}
+        {user && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "10px 12px",
+            borderRadius: "10px",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid var(--border)",
+          }}>
+            {/* Avatar */}
+            <div style={{
+              width: "30px", height: "30px",
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "11px", fontWeight: 700, color: "#fff",
+              flexShrink: 0,
+            }}>
+              {initials}
+            </div>
+            <div style={{ overflow: "hidden" }}>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {user.name}
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {user.email}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Logout button */}
+        <button
+          onClick={logout}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            width: "100%",
+            padding: "9px 14px",
+            borderRadius: "10px",
+            border: "none",
+            background: "transparent",
+            color: "var(--text-muted)",
+            fontSize: "13px",
+            fontWeight: 500,
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+            textAlign: "left",
+          }}
+          onMouseOver={e => {
+            e.currentTarget.style.background = "rgba(244,63,94,0.08)";
+            e.currentTarget.style.color = "var(--red)";
+          }}
+          onMouseOut={e => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "var(--text-muted)";
+          }}
+        >
+          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Sign out
+        </button>
       </div>
     </aside>
   );
