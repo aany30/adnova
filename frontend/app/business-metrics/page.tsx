@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import { fetchWithAuth } from "@/lib/auth";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
 import { 
   Calculator, DollarSign, Package, Image as ImageIcon,
@@ -135,8 +136,28 @@ export default function BusinessMetrics() {
         }
         throw new Error(errorMsg);
       }
-      const data = await res.json();
+      const data: MetricsResult = await res.json();
       setResult(data);
+
+      // Silently log to Supabase for persona tracking (fire-and-forget)
+      fetchWithAuth("/activity/log", {
+        method: "POST",
+        body: JSON.stringify({
+          module: "business_metrics",
+          action: "analyze",
+          input_data: {
+            spend_total: totalSpend,
+            days: form.days,
+            orders: form.orders,
+            cost_price: form.costPrice,
+            selling_price: form.sellingPrice,
+            has_creative: !!creativeFile,
+          },
+          result_summary: data.metrics
+            ? `ROAS: ${data.metrics.roas?.toFixed(2)}x | Net Profit: ₹${data.metrics.net_profit?.toFixed(0)} | ${data.metrics.verdict}`
+            : null,
+        }),
+      }).catch(() => {}); // never block UI on logging failure
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to connect to backend. Is it running?";
       setError(msg);

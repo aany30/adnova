@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import { fetchWithAuth } from "@/lib/auth";
 import {
   Sparkles, Target, Film, Mic, CheckCircle, AlertTriangle,
   BrainCircuit, Users, MapPin, Tv, Tag, Activity, Lightbulb, UserCheck, Languages,
@@ -127,8 +128,25 @@ export default function CampaignOptimizer() {
         }
         throw new Error(errorMsg);
       }
-      const data = await res.json();
+      const data: OptimizerResponse = await res.json();
       setResult(data);
+
+      // Silently log to Supabase for persona tracking (fire-and-forget)
+      fetchWithAuth("/activity/log", {
+        method: "POST",
+        body: JSON.stringify({
+          module: "campaign_optimizer",
+          action: "analyze",
+          input_data: {
+            file_name: creativeFile.name,
+            file_type: creativeFile.type,
+            file_size_kb: Math.round(creativeFile.size / 1024),
+          },
+          result_summary: data.ai_analysis?.detected_product
+            ? `${data.ai_analysis.detected_product} | ${data.ai_analysis.overall_ad_readiness} | Hook: ${data.ai_analysis.hook_score}/100`
+            : null,
+        }),
+      }).catch(() => {}); // never block UI on logging failure
     } catch (err: unknown) {
       console.error("Fetch error:", err);
       const msg = err instanceof Error ? err.message : "Connection failed (v2)";
