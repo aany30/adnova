@@ -7,9 +7,7 @@ import {
   PenTool, MessageSquareText, Video
 } from "lucide-react";
 
-let API = process.env.NEXT_PUBLIC_API_URL || "https://adnova-production.up.railway.app/api";
-if (API.endsWith('/')) API = API.slice(0, -1);
-if (!API.endsWith('/api')) API = `${API}/api`;
+let API = "https://adnova-production.up.railway.app/api";
 
 interface ScoreWithReason {
   score: number;
