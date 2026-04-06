@@ -23,7 +23,12 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*", "https://adnova-bp4f.vercel.app", "https://adnova-bp4f-i9jd1ew6u-aany30s-projects.vercel.app"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://adnova-bp4f.vercel.app",
+        "https://adnova-bp4f-i9jd1ew6u-aany30s-projects.vercel.app",
+        "*"  # FastAPI will allow wildcard if we set allow_credentials to false, but we have True. So let's add origins explicitly.
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE", "HEAD"],
     allow_headers=["*"],
