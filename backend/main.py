@@ -17,7 +17,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     traceback.print_exc()
     return JSONResponse(
         status_code=500,
-        content={"detail": str(exc)},
+        content={"detail": str(exc), "traceback": traceback.format_exc()},
         headers={"Access-Control-Allow-Origin": "*"}
     )
 
