@@ -47,7 +47,7 @@ export function setUser(user: AuthUser): void {
 
 // ─── Authenticated fetch ───────────────────────────────────────────────────────
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://adnova-backend.onrender.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://adnova-production.up.railway.app";
 
 export async function fetchWithAuth(
   path: string,

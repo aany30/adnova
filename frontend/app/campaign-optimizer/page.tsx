@@ -30,6 +30,7 @@ interface CampaignResult {
   api_error?: boolean;
   parse_error?: boolean;
   detected_product: string;
+  creative_intent: string;
   creative_type: string;
   detected_brand_stage: string;
   overall_ad_readiness: string;
@@ -328,7 +329,7 @@ export default function CampaignOptimizer() {
               <div className="glass-card" style={{ padding: "0", overflow: "hidden" }}>
                 <div style={{ padding: "28px 32px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.01)" }}>
                   <div>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--blue)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>Core Message Detected</div>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--blue)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>{ai.creative_intent || "Core Message Detected"}</div>
                     <div style={{ fontSize: "22px", fontWeight: 800, color: "var(--text-primary)", marginBottom: "4px" }}>{ai.detected_product}</div>
                     <div style={{ fontSize: "13px", color: "var(--text-secondary)", fontWeight: 500 }}>{ai.creative_type} · {ai.detected_brand_stage}</div>
                   </div>
