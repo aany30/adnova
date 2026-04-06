@@ -93,10 +93,36 @@ export default function CampaignOptimizer() {
   const isParseError = !!ai && ai.parse_error === true;
 
   const handleFileChange = (file: File) => {
-    setCreativeFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    if (result) setResult(null);
+    if (file.type.startsWith("video/")) {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        if (video.duration > 60) {
+          setError("Video exceeds maximum allowed length of 1 minute. Please upload a shorter creative.");
+          setCreativeFile(null);
+          setPreviewUrl(null);
+          if (result) setResult(null);
+          // Revoke immediately as we won't use it
+          URL.revokeObjectURL(url);
+        } else {
+          setError(null);
+          setCreativeFile(file);
+          setPreviewUrl(url);
+          if (result) setResult(null);
+        }
+      };
+      video.onerror = () => {
+        setError("Invalid video file.");
+        URL.revokeObjectURL(url);
+      };
+      video.src = url;
+    } else {
+      setError(null);
+      setCreativeFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      if (result) setResult(null);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
