@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from routers import metrics, creative
-from routers import auth, activity
+from routers import auth, activity, admin
 import traceback
 
 app = FastAPI(
@@ -40,6 +40,7 @@ app.include_router(metrics.router)
 app.include_router(creative.router)
 app.include_router(auth.router)
 app.include_router(activity.router)
+app.include_router(admin.router)
 
 
 @app.get("/")
@@ -55,4 +56,3 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
-
