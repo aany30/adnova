@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from routers import metrics, creative
 from routers import auth, activity, admin
+import os
 import traceback
 
 app = FastAPI(
@@ -10,6 +11,22 @@ app = FastAPI(
     description="AI-powered Meta Ads optimizer for Indian D2C brands",
     version="1.0.0"
 )
+
+DEFAULT_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "https://adnova-bp4f.vercel.app",
+    "https://adnova-bp4f-i9jd1ew6u-aany30s-projects.vercel.app",
+    "https://adnova-six.vercel.app",
+]
+
+
+def _allowed_origins() -> list[str]:
+    raw = os.getenv("ADNOVA_CORS_ORIGINS", "")
+    configured = [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
+    return sorted(set(DEFAULT_ALLOWED_ORIGINS + configured))
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -23,12 +40,8 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://adnova-bp4f.vercel.app",
-        "https://adnova-bp4f-i9jd1ew6u-aany30s-projects.vercel.app",
-        "*"  # FastAPI will allow wildcard if we set allow_credentials to false, but we have True. So let's add origins explicitly.
-    ],
+    allow_origins=_allowed_origins(),
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE", "HEAD"],
     allow_headers=["*"],
